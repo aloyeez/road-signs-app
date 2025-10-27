@@ -47,16 +47,17 @@ const flashcards = [
 const FlashCardsCZ: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [stillLearning, setStillLearning] = useState<number[]>([]);
   const [alreadyDone, setAlreadyDone] = useState<number[]>([]);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [activeFlashcards, setActiveFlashcards] = useState(flashcards);
 
-  const currentCard = flashcards[currentIndex];
-  const isComplete = currentIndex >= flashcards.length;
+  const currentCard = activeFlashcards[currentIndex];
+  const isComplete = currentIndex >= activeFlashcards.length;
 
   const handleCardClick = () => {
     setIsFlipped(!isFlipped);
@@ -66,22 +67,34 @@ const FlashCardsCZ: React.FC = () => {
     if (isComplete) return;
 
     const cardId = currentCard.id;
-    
+
     if (direction === 'left') {
       setStillLearning([...stillLearning, cardId]);
     } else {
       setAlreadyDone([...alreadyDone, cardId]);
     }
 
-    // Move to next card
+    // Move to next card with smooth animation
     setTimeout(() => {
       setCurrentIndex(currentIndex + 1);
       setIsFlipped(false);
       setDragOffset(0);
-    }, 300);
+    }, 250);
   };
 
   const handleReset = () => {
+    setCurrentIndex(0);
+    setStillLearning([]);
+    setAlreadyDone([]);
+    setIsFlipped(false);
+    setDragOffset(0);
+    setActiveFlashcards(flashcards);
+  };
+
+  const handleContinueSession = () => {
+    // Filter flashcards to only include those in stillLearning
+    const learningCards = flashcards.filter(card => stillLearning.includes(card.id));
+    setActiveFlashcards(learningCards);
     setCurrentIndex(0);
     setStillLearning([]);
     setAlreadyDone([]);
@@ -185,39 +198,42 @@ const FlashCardsCZ: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen>
+      <IonContent fullscreen scrollY={false}>
         <Box
-          minH="100vh"
+          h="calc(100vh - 73px)"
           bg={colorMode === 'light' ? '#faf8f5' : '#1a0f0a'}
-          py={8}
+          overflow="hidden"
+          display="flex"
+          flexDirection="column"
         >
-          <Container maxW="container.md">
-            <VStack gap={6} align="stretch">
+          <Container maxW="container.md" h="100%" display="flex" flexDirection="column" py={4}>
+            <VStack gap={3} align="stretch" flex="1" justify="space-between">
               {/* Progress */}
               <Box
-                p={4}
+                p={3}
                 borderRadius="xl"
                 bg={colorMode === 'light' ? 'white' : '#2c1810'}
                 borderWidth="1px"
                 borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                flexShrink={0}
               >
-                <VStack gap={3}>
+                <VStack gap={2}>
                   <HStack justify="space-between" w="100%">
                     <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                      Progress: {Math.min(currentIndex, flashcards.length)} / {flashcards.length}
+                      Progress: {Math.min(currentIndex, activeFlashcards.length)} / {activeFlashcards.length}
                     </Text>
                     {!isComplete && (
                       <Text fontSize="sm" color={colorMode === 'light' ? '#d4a574' : '#d4a574'} fontWeight="semibold">
-                        {flashcards.length - currentIndex} remaining
+                        {activeFlashcards.length - currentIndex} remaining
                       </Text>
                     )}
                   </HStack>
-                  <Box w="100%" h="8px" bg={colorMode === 'light' ? '#e8dcc8' : '#5d4037'} borderRadius="full" overflow="hidden">
+                  <Box w="100%" h="6px" bg={colorMode === 'light' ? '#e8dcc8' : '#5d4037'} borderRadius="full" overflow="hidden">
                     <Box
                       h="100%"
-                      w={`${(currentIndex / flashcards.length) * 100}%`}
+                      w={`${(currentIndex / activeFlashcards.length) * 100}%`}
                       bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                      transition="width 0.3s ease"
+                      transition="width 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
                     />
                   </Box>
                 </VStack>
@@ -225,10 +241,10 @@ const FlashCardsCZ: React.FC = () => {
 
               {/* Instructions */}
               {!isComplete && (
-                <HStack justify="center" gap={8} py={2}>
+                <HStack justify="center" gap={8} py={1} flexShrink={0}>
                   <HStack gap={2}>
                     <Box color="#dc2626">
-                      <ArrowLeft size={20} />
+                      <ArrowLeft size={18} />
                     </Box>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
                       Still Learning
@@ -236,7 +252,7 @@ const FlashCardsCZ: React.FC = () => {
                   </HStack>
                   <HStack gap={2}>
                     <Box color="#16a34a">
-                      <ArrowRight size={20} />
+                      <ArrowRight size={18} />
                     </Box>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
                       Already Done
@@ -249,10 +265,11 @@ const FlashCardsCZ: React.FC = () => {
               {!isComplete ? (
                 <Box
                   position="relative"
-                  minH="500px"
+                  flex="1"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
+                  minH="0"
                 >
                   {/* Swipe indicators */}
                   <Box
@@ -261,17 +278,17 @@ const FlashCardsCZ: React.FC = () => {
                     top="50%"
                     transform="translateY(-50%)"
                     opacity={getOpacity('left')}
-                    transition="opacity 0.2s"
+                    transition="opacity 0.15s ease-out"
                     zIndex={0}
                   >
                     <Box
                       bg="#dc2626"
                       color="white"
-                      px={4}
+                      px={3}
                       py={2}
                       borderRadius="lg"
                       fontWeight="bold"
-                      fontSize="lg"
+                      fontSize="md"
                     >
                       Still Learning
                     </Box>
@@ -283,17 +300,17 @@ const FlashCardsCZ: React.FC = () => {
                     top="50%"
                     transform="translateY(-50%)"
                     opacity={getOpacity('right')}
-                    transition="opacity 0.2s"
+                    transition="opacity 0.15s ease-out"
                     zIndex={0}
                   >
                     <Box
                       bg="#16a34a"
                       color="white"
-                      px={4}
+                      px={3}
                       py={2}
                       borderRadius="lg"
                       fontWeight="bold"
-                      fontSize="lg"
+                      fontSize="md"
                     >
                       Already Done
                     </Box>
@@ -303,7 +320,8 @@ const FlashCardsCZ: React.FC = () => {
                   <Box
                     w="100%"
                     maxW="400px"
-                    h="500px"
+                    maxH="calc(100vh - 300px)"
+                    h="100%"
                     position="relative"
                     style={{
                       perspective: '1000px',
@@ -319,7 +337,7 @@ const FlashCardsCZ: React.FC = () => {
                       style={{
                         transformStyle: 'preserve-3d',
                         transform: `rotateY(${isFlipped ? 180 : 0}deg) translateX(${dragOffset}px) rotate(${getRotation()}deg)`,
-                        transition: isDragging ? 'none' : 'transform 0.6s',
+                        transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}
                       cursor="pointer"
                       onClick={handleCardClick}
@@ -336,7 +354,7 @@ const FlashCardsCZ: React.FC = () => {
                         <Box
                           w="100%"
                           h="100%"
-                          p={8}
+                          p={6}
                           borderRadius="2xl"
                           bg={colorMode === 'light' ? 'white' : '#2c1810'}
                           borderWidth="2px"
@@ -346,10 +364,11 @@ const FlashCardsCZ: React.FC = () => {
                           justifyContent="center"
                           boxShadow="xl"
                         >
-                          <VStack gap={4}>
+                          <VStack gap={3} h="100%" justify="center">
                             <Box
-                              w="250px"
-                              h="250px"
+                              flex="1"
+                              maxW="250px"
+                              maxH="250px"
                               borderRadius="xl"
                               overflow="hidden"
                               bg={colorMode === 'light' ? '#faf8f5' : '#1a0f0a'}
@@ -358,8 +377,8 @@ const FlashCardsCZ: React.FC = () => {
                               justifyContent="center"
                               p={4}
                             >
-                              <img 
-                                src={currentCard.image} 
+                              <img
+                                src={currentCard.image}
                                 alt="Road sign"
                                 style={{
                                   width: '100%',
@@ -368,8 +387,8 @@ const FlashCardsCZ: React.FC = () => {
                                 }}
                               />
                             </Box>
-                            <Text 
-                              fontSize="sm" 
+                            <Text
+                              fontSize="sm"
                               color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
                               fontWeight="semibold"
                             >
@@ -392,7 +411,7 @@ const FlashCardsCZ: React.FC = () => {
                         <Box
                           w="100%"
                           h="100%"
-                          p={8}
+                          p={6}
                           borderRadius="2xl"
                           bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
                           display="flex"
@@ -400,16 +419,16 @@ const FlashCardsCZ: React.FC = () => {
                           justifyContent="center"
                           boxShadow="xl"
                         >
-                          <VStack gap={3} textAlign="center">
-                            <Heading 
-                              size="xl" 
+                          <VStack gap={3} textAlign="center" px={2}>
+                            <Heading
+                              size="lg"
                               color="white"
                               lineHeight="1.3"
                             >
                               {currentCard.czechName}
                             </Heading>
-                            <Text 
-                              fontSize="md" 
+                            <Text
+                              fontSize="md"
                               color="whiteAlpha.900"
                             >
                               {currentCard.description}
@@ -423,86 +442,124 @@ const FlashCardsCZ: React.FC = () => {
               ) : (
                 /* Summary */
                 <Box
-                  p={8}
-                  borderRadius="2xl"
-                  bg={colorMode === 'light' ? 'white' : '#2c1810'}
-                  borderWidth="1px"
-                  borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
-                  textAlign="center"
+                  flex="1"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
                 >
-                  <VStack gap={6}>
-                    <Box fontSize="6xl">🎉</Box>
-                    <Heading size="xl" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                      Session Complete!
-                    </Heading>
-                    
-                    <HStack gap={8} justify="center">
-                      <VStack>
-                        <Text fontSize="3xl" fontWeight="bold" color="#dc2626">
-                          {stillLearning.length}
-                        </Text>
-                        <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                          Still Learning
-                        </Text>
-                      </VStack>
-                      <VStack>
-                        <Text fontSize="3xl" fontWeight="bold" color="#16a34a">
-                          {alreadyDone.length}
-                        </Text>
-                        <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                          Already Done
-                        </Text>
-                      </VStack>
-                    </HStack>
+                  <Box
+                    p={6}
+                    borderRadius="2xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                    textAlign="center"
+                    w="100%"
+                  >
+                    <VStack gap={4}>
+                      <Box fontSize="5xl">🎉</Box>
+                      <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                        Session Complete!
+                      </Heading>
 
-                    <HStack gap={4} pt={4}>
-                      <Box
-                        as="button"
-                        px={6}
-                        py={3}
-                        borderRadius="xl"
-                        bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                        color="white"
-                        fontWeight="semibold"
-                        onClick={handleReset}
-                        _hover={{
-                          opacity: 0.9,
-                        }}
-                        display="flex"
-                        alignItems="center"
-                        gap={2}
-                      >
-                        <RotateCcw size={18} />
-                        Practice Again
-                      </Box>
-                      <Box
-                        as="button"
-                        px={6}
-                        py={3}
-                        borderRadius="xl"
-                        bg={colorMode === 'light' ? 'white' : '#2c1810'}
-                        color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                        borderWidth="2px"
-                        borderColor={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                        fontWeight="semibold"
-                        onClick={() => history.goBack()}
-                        _hover={{
-                          opacity: 0.9,
-                        }}
-                      >
-                        Back to Menu
-                      </Box>
-                    </HStack>
-                  </VStack>
+                      <HStack gap={6} justify="center">
+                        <VStack>
+                          <Text fontSize="2xl" fontWeight="bold" color="#dc2626">
+                            {stillLearning.length}
+                          </Text>
+                          <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                            Still Learning
+                          </Text>
+                        </VStack>
+                        <VStack>
+                          <Text fontSize="2xl" fontWeight="bold" color="#16a34a">
+                            {alreadyDone.length}
+                          </Text>
+                          <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                            Already Done
+                          </Text>
+                        </VStack>
+                      </HStack>
+
+                      <VStack gap={3} pt={2} w="100%">
+                        {stillLearning.length > 0 && (
+                          <Box
+                            as="button"
+                            w="100%"
+                            px={6}
+                            py={3}
+                            borderRadius="xl"
+                            bg="#dc2626"
+                            color="white"
+                            fontWeight="semibold"
+                            onClick={handleContinueSession}
+                            _hover={{
+                              opacity: 0.9,
+                            }}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={2}
+                          >
+                            <ArrowRight size={18} />
+                            Continue Session ({stillLearning.length} cards)
+                          </Box>
+                        )}
+                        <HStack gap={3} w="100%">
+                          <Box
+                            as="button"
+                            flex="1"
+                            px={4}
+                            py={3}
+                            borderRadius="xl"
+                            bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                            color="white"
+                            fontWeight="semibold"
+                            onClick={handleReset}
+                            _hover={{
+                              opacity: 0.9,
+                            }}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={2}
+                          >
+                            <RotateCcw size={18} />
+                            Practice Again
+                          </Box>
+                          <Box
+                            as="button"
+                            flex="1"
+                            px={4}
+                            py={3}
+                            borderRadius="xl"
+                            bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                            color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                            borderWidth="2px"
+                            borderColor={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                            fontWeight="semibold"
+                            onClick={() => history.goBack()}
+                            _hover={{
+                              opacity: 0.9,
+                            }}
+                          >
+                            Back to Menu
+                          </Box>
+                        </HStack>
+                      </VStack>
+                    </VStack>
+                  </Box>
                 </Box>
               )}
 
               {/* Action Buttons (mobile fallback) */}
               {!isComplete && (
-                <HStack gap={4} justify="center">
+                <HStack gap={3} justify="center" flexShrink={0}>
                   <Box
                     as="button"
-                    px={6}
+                    flex="1"
+                    maxW="180px"
+                    px={4}
                     py={3}
                     borderRadius="xl"
                     bg="#dc2626"
@@ -514,6 +571,7 @@ const FlashCardsCZ: React.FC = () => {
                     }}
                     display="flex"
                     alignItems="center"
+                    justifyContent="center"
                     gap={2}
                   >
                     <ArrowLeft size={18} />
@@ -521,7 +579,9 @@ const FlashCardsCZ: React.FC = () => {
                   </Box>
                   <Box
                     as="button"
-                    px={6}
+                    flex="1"
+                    maxW="180px"
+                    px={4}
                     py={3}
                     borderRadius="xl"
                     bg="#16a34a"
@@ -533,6 +593,7 @@ const FlashCardsCZ: React.FC = () => {
                     }}
                     display="flex"
                     alignItems="center"
+                    justifyContent="center"
                     gap={2}
                   >
                     Already Done
