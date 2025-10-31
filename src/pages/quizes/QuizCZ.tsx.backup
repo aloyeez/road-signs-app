@@ -1,0 +1,1005 @@
+import React, { useState } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonContent,
+  IonIcon,
+} from '@ionic/react';
+import { arrowBackOutline } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
+import {
+  Box,
+  VStack,
+  HStack,
+  Heading,
+  Text,
+  IconButton,
+  Container,
+  Flex,
+  Badge,
+  Button,
+  Grid,
+} from '@chakra-ui/react';
+import { Moon, Sun, CheckCircle, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
+import { useColorMode } from '@chakra-ui/color-mode';
+import { czechRoadSigns, type RoadSign } from '../../data/czechSigns';
+
+// Use imported Czech road signs data
+const roadSigns = czechRoadSigns;
+
+interface QuizQuestion {
+  sign: RoadSign;
+  options: string[];
+  correctAnswer: string;
+}
+
+const QuizCZ: React.FC = () => {
+  const history = useHistory();
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  // Category selection
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [quizStarted, setQuizStarted] = useState(false);
+
+  // Quiz state
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
+  const [wrongAnswers, setWrongAnswers] = useState<number[]>([]);
+  const [quizFinished, setQuizFinished] = useState(false);
+
+  const categories = ['Random', 'Warning', 'Prohibition'];
+
+  // Generate quiz questions
+  const generateQuiz = (category: string) => {
+    let selectedSigns = [...roadSigns];
+
+    if (category !== 'Random') {
+      selectedSigns = roadSigns.filter(sign => sign.category === category);
+    }
+
+    // Shuffle and select 20 signs (or all if less than 20)
+    const shuffled = selectedSigns.sort(() => 0.5 - Math.random());
+    const quizSigns = shuffled.slice(0, Math.min(20, selectedSigns.length));
+
+    // Generate questions with 4 options each
+  {
+    id: 2,
+    name: 'Zatáčka vlevo',
+    czechName: 'Zatáčka vlevo',
+    category: 'Výstražné',
+    description: 'Upozorňuje na směrový oblouk.',
+    image: '/assets/signs/cz/zatacka_vlevo.png',
+    color: 'yellow',
+  },
+  {
+    id: 3,
+    name: 'Dvojitá zatáčka, první vpravo',
+    czechName: 'Dvojitá zatáčka, první vpravo',
+    category: 'Výstražné',
+    description: 'Upozorňuje na dva po sobě následující protisměrné směrové oblouky.',
+    image: '/assets/signs/cz/dvojita_zatacka_prvni_vpravo.png',
+    color: 'yellow',
+  },
+  {
+    id: 4,
+    name: 'Dvojitá zatáčka, první vlevo',
+    czechName: 'Dvojitá zatáčka, první vlevo',
+    category: 'Výstražné',
+    description: 'Upozorňuje na dva po sobě následující protisměrné směrové oblouky.',
+    image: '/assets/signs/cz/dvojita_zatacka_prvni_vlevo.png',
+    color: 'yellow',
+  },
+  {
+    id: 5,
+    name: 'Křižovatka',
+    czechName: 'Křižovatka',
+    category: 'Výstražné',
+    description: 'Upozorňuje na křižovatku, kde není přednost v jízdě upravena svislými dopravními značkami.',
+    image: '/assets/signs/cz/krizovatka.png',
+    color: 'yellow',
+  },
+  {
+    id: 6,
+    name: 'Křižovatka s kruhovým objezdem',
+    czechName: 'Křižovatka s kruhovým objezdem',
+    category: 'Výstražné',
+    description: 'Upozorňuje na křižovatku s kruhovým objezdem.',
+    image: '/assets/signs/cz/krizovatka_s_kruhovym_objezdem.png',
+    color: 'yellow',
+  },
+  {
+    id: 7,
+    name: 'Nebezpečné klesání',
+    czechName: 'Nebezpečné klesání',
+    category: 'Výstražné',
+    description: 'Upozorňuje na úsek, kde klesání vozovky přesahuje 10 % nebo kde místní podmínky činí klesání nebezpečným.',
+    image: '/assets/signs/cz/nebezpecne_klesani.png',
+    color: 'yellow',
+  },
+  {
+    id: 8,
+    name: 'Nebezpečné stoupání',
+    czechName: 'Nebezpečné stoupání',
+    category: 'Výstražné',
+    description: 'Upozorňuje na úsek, kde stoupání vozovky přesahuje 10 % nebo kde místní podmínky činí stoupání nebezpečným.',
+    image: '/assets/signs/cz/nebezpecne_stoupani.png',
+    color: 'yellow',
+  },
+  {
+    id: 9,
+    name: 'Zúžená vozovka (z obou stran)',
+    czechName: 'Zúžená vozovka (z obou stran)',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde se vozovka zužuje oproti předchozímu úseku.',
+    image: '/assets/signs/cz/zuzena_vozovka_z_obou_stran.png',
+    color: 'yellow',
+  },
+  {
+    id: 10,
+    name: 'Zúžená vozovka (z jedné strany)',
+    czechName: 'Zúžená vozovka (z jedné strany)',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde se vozovka zužuje z jedné strany.',
+    image: '/assets/signs/cz/zuzena_vozovka_z_jedne_strany1.png',
+    color: 'yellow',
+  },
+  {
+    id: 11,
+    name: 'Nerovnost vozovky',
+    czechName: 'Nerovnost vozovky',
+    category: 'Výstražné',
+    description: 'Upozorňuje na jednotlivé nerovnosti nebo úsek s nerovným povrchem vozovky.',
+    image: '/assets/signs/cz/nerovnost_vozovky.png',
+    color: 'yellow',
+  },
+  {
+    id: 12,
+    name: 'Zpomalovací práh',
+    czechName: 'Zpomalovací práh',
+    category: 'Výstražné',
+    description: 'Upozorňuje na umělou nerovnost na vozovce.',
+    image: '/assets/signs/cz/zpomalovaci_prah.png',
+    color: 'yellow',
+  },
+  {
+    id: 13,
+    name: 'Nebezpečí smyku',
+    czechName: 'Nebezpečí smyku',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo nebo úsek, kde může vozidlo snadno dostat smyk.',
+    image: '/assets/signs/cz/nebezpeci_smyku.png',
+    color: 'yellow',
+  },
+  {
+    id: 14,
+    name: 'Provoz v obou směrech',
+    czechName: 'Provoz v obou směrech',
+    category: 'Výstražné',
+    description: 'Upozorňuje na úsek, kde na rozdíl od předchozího úseku je provoz v obou směrech.',
+    image: '/assets/signs/cz/provoz_v_obou_smerech.png',
+    color: 'yellow',
+  },
+  {
+    id: 15,
+    name: 'Světelné signály',
+    czechName: 'Světelné signály',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde je provoz řízen světelnými signály.',
+    image: '/assets/signs/cz/svetelne_signaly.png',
+    color: 'yellow',
+  },
+  {
+    id: 16,
+    name: 'Přechod pro chodce',
+    czechName: 'Přechod pro chodce',
+    category: 'Výstražné',
+    description: 'Předem varuje před přechodem pro chodce.',
+    image: '/assets/signs/cz/prechod_pro_chodce.png',
+    color: 'yellow',
+  },
+  {
+    id: 17,
+    name: 'Chodci',
+    czechName: 'Chodci',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo nebo úsek s častým výskytem chodců.',
+    image: '/assets/signs/cz/chodci.png',
+    color: 'yellow',
+  },
+  {
+    id: 18,
+    name: 'Děti',
+    czechName: 'Děti',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde se často pohybují děti.',
+    image: '/assets/signs/cz/deti.png',
+    color: 'yellow',
+  },
+  {
+    id: 19,
+    name: 'Zvířata',
+    czechName: 'Zvířata',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo s častým výskytem domácích zvířat na vozovce.',
+    image: '/assets/signs/cz/zvirata.png',
+    color: 'yellow',
+  },
+  {
+    id: 20,
+    name: 'Zvěř',
+    czechName: 'Zvěř',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo s častým výskytem zvěře na vozovce.',
+    image: '/assets/signs/cz/zver.png',
+    color: 'yellow',
+  },
+  {
+    id: 21,
+    name: 'Práce na silnici',
+    czechName: 'Práce na silnici',
+    category: 'Výstražné',
+    description: 'Upozorňuje na práce na silnici.',
+    image: '/assets/signs/cz/prace_na_silnici.png',
+    color: 'yellow',
+  },
+  {
+    id: 22,
+    name: 'Boční vítr',
+    czechName: 'Boční vítr',
+    category: 'Výstražné',
+    description: 'Upozorňuje na úsek, kde může silný boční vítr ohrozit bezpečnost.',
+    image: '/assets/signs/cz/bocni_vitr.png',
+    color: 'yellow',
+  },
+  {
+    id: 23,
+    name: 'Odlétávající štěrk',
+    czechName: 'Odlétávající štěrk',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo s volným štěrkem na vozovce.',
+    image: '/assets/signs/cz/odletavajici_sterk.png',
+    color: 'yellow',
+  },
+  {
+    id: 24,
+    name: 'Kamení na vozovce',
+    czechName: 'Kamení na vozovce',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde mohou na vozovku padat kameny.',
+    image: '/assets/signs/cz/kameni_na_vozovce.png',
+    color: 'yellow',
+  },
+  {
+    id: 25,
+    name: 'Cyklisté',
+    czechName: 'Cyklisté',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde cyklisté vjíždějí nebo přejíždějí vozovku.',
+    image: '/assets/signs/cz/cykliste.png',
+    color: 'yellow',
+  },
+  {
+    id: 26,
+    name: 'Letadla',
+    czechName: 'Letadla',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde létají letadla v nízké výšce nad silnicí.',
+    image: '/assets/signs/cz/letadla.png',
+    color: 'yellow',
+  },
+  {
+    id: 27,
+    name: 'Tunel',
+    czechName: 'Tunel',
+    category: 'Výstražné',
+    description: 'Upozorňuje na tunel.',
+    image: '/assets/signs/cz/tunel.png',
+    color: 'yellow',
+  },
+  {
+    id: 28,
+    name: 'Jiné nebezpečí',
+    czechName: 'Jiné nebezpečí',
+    category: 'Výstražné',
+    description: 'Varuje před jinými nebezpečími.',
+    image: '/assets/signs/cz/letadla.png',
+    color: 'yellow',
+  },
+  {
+    id: 29,
+    name: 'Kolona',
+    czechName: 'Kolona',
+    category: 'Výstražné',
+    description: 'Varuje před kolonou stojících nebo pomalu se pohybujících vozidel.',
+    image: '/assets/signs/cz/kolona.png',
+    color: 'yellow',
+  },
+  {
+    id: 30,
+    name: 'Náledí',
+    czechName: 'Náledí',
+    category: 'Výstražné',
+    description: 'Varuje před úsekem s častým výskytem námrazy na vozovce.',
+    image: '/assets/signs/cz/naledi.png',
+    color: 'yellow',
+  },
+  {
+    id: 31,
+    name: 'Tramvaj',
+    czechName: 'Tramvaj',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo, kde tramvaj křižuje směr jízdy jiných vozidel.',
+    image: '/assets/signs/cz/tramvaj.png',
+    color: 'yellow',
+  },
+  {
+    id: 32,
+    name: 'Mlha',
+    czechName: 'Mlha',
+    category: 'Výstražné',
+    description: 'Varuje před výskytem mlhy snižující viditelnost.',
+    image: '/assets/signs/cz/mlha.png',
+    color: 'yellow',
+  },
+  {
+    id: 33,
+    name: 'Nehoda',
+    czechName: 'Nehoda',
+    category: 'Výstražné',
+    description: 'Upozorňuje na místo dopravní nehody.',
+    image: '/assets/signs/cz/nehoda.png',
+    color: 'yellow',
+  },
+  {
+    id: 34,
+    name: 'Nebezpečná krajnice',
+    czechName: 'Nebezpečná krajnice',
+    category: 'Výstražné',
+    description: 'Upozorňuje na úsek, kde je nebezpečné najíždět na krajnici.',
+    image: '/assets/signs/cz/nebezpecna_krajnice.png',
+    color: 'yellow',
+  },
+  {
+    id: 35,
+    name: 'Železniční přejezd se závorami',
+    czechName: 'Železniční přejezd se závorami',
+    category: 'Výstražné',
+    description: 'Upozorňuje na železniční přejezd vybavený závorami.',
+    image: '/assets/signs/cz/zeleznicni_prejezd_se_zavorami.png',
+    color: 'yellow',
+  },
+  {
+    id: 36,
+    name: 'Železniční přejezd bez závor',
+    czechName: 'Železniční přejezd bez závor',
+    category: 'Výstražné',
+    description: 'Upozorňuje na železniční přejezd bez závor.',
+    image: '/assets/signs/cz/zeleznicni_prejezd_bez_zavor.png',
+    color: 'yellow',
+  },
+  {
+    id: 37,
+    name: 'Návěstní deska (240 m)',
+    czechName: 'Návěstní deska (240 m)',
+    category: 'Výstražné',
+    description: 'Předem varuje před železničním přejezdem.',
+    image: '/assets/signs/cz/navestni_deska_240.png',
+    color: 'yellow',
+  },
+  {
+    id: 38,
+    name: 'Návěstní deska (160 m)',
+    czechName: 'Návěstní deska (160 m)',
+    category: 'Výstražné',
+    description: 'Předem varuje před železničním přejezdem.',
+    image: '/assets/signs/cz/navestni_deska_160.png',
+    color: 'yellow',
+  },
+  {
+    id: 39,
+    name: 'Návěstní deska (80 m)',
+    czechName: 'Návěstní deska (80 m)',
+    category: 'Výstražné',
+    description: 'Předem varuje před železničním přejezdem.',
+    image: '/assets/signs/cz/navestni_deska_80.png',
+    color: 'yellow',
+  },
+  {
+    id: 40,
+    name: 'Výstražný kříž jednokolejný',
+    czechName: 'Výstražný kříž pro železniční přejezd jednokolejný',
+    category: 'Výstražné',
+    description: 'Označuje železniční přejezd jednokolejné trati.',
+    image: '/assets/signs/cz/Czech_Republic_road_sign_A_32a.png',
+    color: 'yellow',
+  },
+  {
+    id: 41,
+    name: 'Výstražný kříž vícekolejný',
+    czechName: 'Výstražný kříž pro železniční přejezd vícekolejný',
+    category: 'Výstražné',
+    description: 'Označuje železniční přejezd vícekolejné trati.',
+    image: '/assets/signs/cz/A32b.png',
+    color: 'yellow',
+  },
+  {
+    id: 42,
+    name: 'Zákaz vjezdu všech vozidel',
+    czechName: 'Zákaz vjezdu všech vozidel',
+    category: 'Zákazové',
+    description: 'Vjezd všech vozidel zakázán.',
+    image: '/assets/signs/cz/zakaz_vjezdu_vsech_vozidel.png',
+    color: 'red',
+  },
+];
+
+interface QuizQuestion {
+  sign: typeof roadSigns[0];
+  options: string[];
+  correctAnswer: string;
+}
+
+const QuizCZ: React.FC = () => {
+  const history = useHistory();
+  const { colorMode, toggleColorMode } = useColorMode();
+
+  // Category selection
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [quizStarted, setQuizStarted] = useState(false);
+
+  // Quiz state
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
+  const [wrongAnswers, setWrongAnswers] = useState<number[]>([]);
+  const [quizFinished, setQuizFinished] = useState(false);
+
+  const categories = ['Náhodná', 'Výstražné', 'Zákazové'];
+
+  // Generate quiz questions
+  const generateQuiz = (category: string) => {
+    let selectedSigns = [...roadSigns];
+
+    if (category !== 'Náhodná') {
+      selectedSigns = roadSigns.filter(sign => sign.category === category);
+    }
+
+    // Shuffle and select 20 signs (or all if less than 20)
+    const shuffled = selectedSigns.sort(() => 0.5 - Math.random());
+    const quizSigns = shuffled.slice(0, Math.min(20, selectedSigns.length));
+
+    // Generate questions with 4 options each
+    const generatedQuestions: QuizQuestion[] = quizSigns.map(sign => {
+      const correctAnswer = sign.czechName;
+
+      // Get 3 random wrong answers from other signs
+      const otherSigns = roadSigns.filter(s => s.id !== sign.id);
+      const wrongOptions = otherSigns
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(s => s.czechName);
+
+      // Combine and shuffle options
+      const options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
+
+      return {
+        sign,
+        options,
+        correctAnswer,
+      };
+    });
+
+    setQuestions(generatedQuestions);
+    setQuizStarted(true);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    generateQuiz(category);
+  };
+
+  const handleAnswerSelect = (answer: string) => {
+    if (selectedAnswer || showResult) return;
+
+    setSelectedAnswer(answer);
+    setShowResult(true);
+
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = answer === currentQuestion.correctAnswer;
+
+    if (isCorrect) {
+      setCorrectAnswers([...correctAnswers, currentQuestionIndex]);
+    } else {
+      setWrongAnswers([...wrongAnswers, currentQuestionIndex]);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  const handleRestartQuiz = () => {
+    setSelectedCategory(null);
+    setQuizStarted(false);
+    setQuestions([]);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setCorrectAnswers([]);
+    setWrongAnswers([]);
+    setQuizFinished(false);
+  };
+
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  return (
+    <IonPage>
+      <IonHeader className="ion-no-border">
+        <IonToolbar
+          style={{
+            '--background': colorMode === 'light' ? '#ffffff' : '#2c1810',
+            '--border-width': '0',
+            '--padding-top': '12px',
+            '--padding-bottom': '12px',
+          }}
+        >
+          <Box
+            px={4}
+            py={3}
+            bg={colorMode === 'light' ? 'white' : '#2c1810'}
+            borderBottomWidth="1px"
+            borderBottomColor={colorMode === 'light' ? '#d4a574' : '#8b6f47'}
+          >
+            <Flex justify="space-between" align="center">
+              <HStack gap={3}>
+                <IconButton
+                  aria-label="Go back"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => history.goBack()}
+                  borderRadius="full"
+                  color={colorMode === 'light' ? '#5d4037' : '#bcaaa4'}
+                  _hover={{
+                    bg: colorMode === 'light' ? '#f5e6d3' : '#3e2723',
+                    color: colorMode === 'light' ? '#d4a574' : '#d4a574',
+                  }}
+                >
+                  <IonIcon icon={arrowBackOutline} style={{ fontSize: '22px' }} />
+                </IconButton>
+                <HStack gap={2}>
+                  <Box
+                    fontSize="2xl"
+                    bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                    px={2}
+                    py={1}
+                    borderRadius="lg"
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                  >
+                    🧠
+                  </Box>
+                  <VStack align="start" gap={0}>
+                    <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
+                      Quiz
+                    </Heading>
+                    <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
+                      Česká republika
+                    </Text>
+                  </VStack>
+                </HStack>
+              </HStack>
+
+              <IconButton
+                aria-label="Toggle color mode"
+                variant="ghost"
+                size="md"
+                onClick={toggleColorMode}
+                borderRadius="full"
+                color={colorMode === 'light' ? '#5d4037' : '#bcaaa4'}
+                _hover={{
+                  bg: colorMode === 'light' ? '#f5e6d3' : '#3e2723',
+                  color: colorMode === 'light' ? '#d4a574' : '#d4a574',
+                }}
+              >
+                {colorMode === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </IconButton>
+            </Flex>
+          </Box>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent fullscreen>
+        <Box
+          minH="100vh"
+          bg={colorMode === 'light' ? '#faf8f5' : '#1a0f0a'}
+          py={8}
+        >
+          <Container maxW="container.md">
+            <VStack gap={6} align="stretch">
+              {/* Category Selection */}
+              {!quizStarted && !quizFinished && (
+                <>
+                  <Box
+                    p={6}
+                    borderRadius="xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                    textAlign="center"
+                  >
+                    <VStack gap={4}>
+                      <Box fontSize="4xl">🎯</Box>
+                      <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                        Vyberte kategorii
+                      </Heading>
+                      <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="sm">
+                        Zvolte kategorii značek nebo náhodný mix 20 značek
+                      </Text>
+                    </VStack>
+                  </Box>
+
+                  <VStack gap={4} align="stretch">
+                    {categories.map((category) => {
+                      const signsInCategory = category === 'Náhodná'
+                        ? roadSigns.length
+                        : roadSigns.filter(s => s.category === category).length;
+
+                      return (
+                        <Box
+                          key={category}
+                          p={6}
+                          borderRadius="xl"
+                          bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                          borderWidth="1px"
+                          borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                          cursor="pointer"
+                          onClick={() => handleCategorySelect(category)}
+                          _hover={{
+                            transform: 'translateY(-4px)',
+                            shadow: 'xl',
+                            borderColor: colorMode === 'light' ? '#d4a574' : '#d4a574',
+                          }}
+                          transition="all 0.3s ease"
+                        >
+                          <HStack justify="space-between">
+                            <VStack align="start" gap={1}>
+                              <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                                {category}
+                              </Heading>
+                              <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                                {Math.min(20, signsInCategory)} značek v kvízu
+                              </Text>
+                            </VStack>
+                            <Badge
+                              bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                              color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                              fontSize="md"
+                              px={3}
+                              py={1}
+                              borderRadius="full"
+                            >
+                              {signsInCategory} dostupných
+                            </Badge>
+                          </HStack>
+                        </Box>
+                      );
+                    })}
+                  </VStack>
+                </>
+              )}
+
+              {/* Quiz Questions */}
+              {quizStarted && !quizFinished && currentQuestion && (
+                <>
+                  {/* Progress Bar */}
+                  <Box
+                    p={4}
+                    borderRadius="xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                  >
+                    <VStack gap={2}>
+                      <HStack justify="space-between" w="100%">
+                        <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                          Otázka {currentQuestionIndex + 1} / {questions.length}
+                        </Text>
+                        <Badge
+                          bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                          color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                        >
+                          {selectedCategory}
+                        </Badge>
+                      </HStack>
+                      <Box w="100%" h="6px" bg={colorMode === 'light' ? '#e8dcc8' : '#5d4037'} borderRadius="full" overflow="hidden">
+                        <Box
+                          h="100%"
+                          w={`${progress}%`}
+                          bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                          transition="width 0.3s ease"
+                        />
+                      </Box>
+                    </VStack>
+                  </Box>
+
+                  {/* Question Card */}
+                  <Box
+                    p={6}
+                    borderRadius="xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                  >
+                    <VStack gap={6}>
+                      <Box
+                        w="200px"
+                        h="200px"
+                        borderRadius="xl"
+                        overflow="hidden"
+                        bg={colorMode === 'light' ? '#faf8f5' : '#1a0f0a'}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        p={4}
+                        borderWidth="1px"
+                        borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                      >
+                        <img
+                          src={currentQuestion.sign.image}
+                          alt="Dopravní značka"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23d4a574" width="200" height="200" rx="10"/%3E%3Ctext x="50%25" y="50%25" font-size="60" text-anchor="middle" dy=".3em" fill="white"%3E?%3C/text%3E%3C/svg%3E';
+                          }}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                          }}
+                        />
+                      </Box>
+
+                      <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} textAlign="center">
+                        Jak se tato značka jmenuje?
+                      </Heading>
+                    </VStack>
+                  </Box>
+
+                  {/* Answer Options */}
+                  <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
+                    {currentQuestion.options.map((option, index) => {
+                      const isSelected = selectedAnswer === option;
+                      const isCorrect = option === currentQuestion.correctAnswer;
+                      const showCorrect = showResult && isCorrect;
+                      const showWrong = showResult && isSelected && !isCorrect;
+
+                      return (
+                        <Box
+                          key={index}
+                          p={4}
+                          borderRadius="xl"
+                          bg={
+                            showCorrect ? '#16a34a' :
+                            showWrong ? '#dc2626' :
+                            colorMode === 'light' ? 'white' : '#2c1810'
+                          }
+                          borderWidth="2px"
+                          borderColor={
+                            showCorrect ? '#16a34a' :
+                            showWrong ? '#dc2626' :
+                            isSelected ? colorMode === 'light' ? '#d4a574' : '#d4a574' :
+                            colorMode === 'light' ? '#e8dcc8' : '#5d4037'
+                          }
+                          cursor={showResult ? 'default' : 'pointer'}
+                          onClick={() => handleAnswerSelect(option)}
+                          _hover={
+                            showResult ? {} : {
+                              borderColor: colorMode === 'light' ? '#d4a574' : '#d4a574',
+                              transform: 'translateY(-2px)',
+                            }
+                          }
+                          transition="all 0.2s ease"
+                        >
+                          <HStack justify="space-between">
+                            <Text
+                              fontSize="md"
+                              fontWeight="medium"
+                              color={
+                                showCorrect || showWrong ? 'white' :
+                                colorMode === 'light' ? '#3e2723' : '#d7ccc8'
+                              }
+                            >
+                              {option}
+                            </Text>
+                            {showCorrect && <CheckCircle size={24} color="white" />}
+                            {showWrong && <XCircle size={24} color="white" />}
+                          </HStack>
+                        </Box>
+                      );
+                    })}
+                  </Grid>
+
+                  {/* Next Button */}
+                  {showResult && (
+                    <Button
+                      size="lg"
+                      bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                      color="white"
+                      onClick={handleNextQuestion}
+                      _hover={{ opacity: 0.9 }}
+                    >
+                      <HStack gap={2}>
+                        <Text>{currentQuestionIndex < questions.length - 1 ? 'Další otázka' : 'Zobrazit výsledky'}</Text>
+                        <ArrowRight size={20} />
+                      </HStack>
+                    </Button>
+                  )}
+                </>
+              )}
+
+              {/* Quiz Results */}
+              {quizFinished && (
+                <>
+                  <Box
+                    p={6}
+                    borderRadius="xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                    textAlign="center"
+                  >
+                    <VStack gap={4}>
+                      <Box fontSize="5xl">
+                        {correctAnswers.length >= questions.length * 0.8 ? '🎉' :
+                         correctAnswers.length >= questions.length * 0.6 ? '👍' : '📚'}
+                      </Box>
+                      <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                        Kvíz dokončen!
+                      </Heading>
+                      <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                        {correctAnswers.length >= questions.length * 0.8
+                          ? 'Výborná práce!'
+                          : correctAnswers.length >= questions.length * 0.6
+                          ? 'Dobrá práce! Pokračujte v procvičování.'
+                          : 'Pokračujte ve studiu a zkuste to znovu!'}
+                      </Text>
+                    </VStack>
+                  </Box>
+
+                  <Box
+                    p={6}
+                    borderRadius="xl"
+                    bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                    borderWidth="1px"
+                    borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                  >
+                    <VStack gap={4}>
+                      <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                        Vaše skóre
+                      </Heading>
+
+                      <HStack gap={8} justify="center">
+                        <VStack>
+                          <Box color="#16a34a">
+                            <CheckCircle size={48} />
+                          </Box>
+                          <Text fontSize="3xl" fontWeight="bold" color="#16a34a">
+                            {correctAnswers.length}
+                          </Text>
+                          <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                            Správně
+                          </Text>
+                        </VStack>
+
+                        <VStack>
+                          <Box color="#dc2626">
+                            <XCircle size={48} />
+                          </Box>
+                          <Text fontSize="3xl" fontWeight="bold" color="#dc2626">
+                            {wrongAnswers.length}
+                          </Text>
+                          <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                            Špatně
+                          </Text>
+                        </VStack>
+                      </HStack>
+
+                      <Box
+                        w="100%"
+                        p={4}
+                        borderRadius="lg"
+                        bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                      >
+                        <Text fontSize="2xl" fontWeight="bold" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
+                          {Math.round((correctAnswers.length / questions.length) * 100)}%
+                        </Text>
+                      </Box>
+                    </VStack>
+                  </Box>
+
+                  <HStack gap={3}>
+                    <Button
+                      flex={1}
+                      size="lg"
+                      bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                      color="white"
+                      onClick={handleRestartQuiz}
+                      _hover={{ opacity: 0.9 }}
+                    >
+                      <HStack gap={2}>
+                        <RotateCcw size={20} />
+                        <Text>Nový kvíz</Text>
+                      </HStack>
+                    </Button>
+                    <Button
+                      flex={1}
+                      size="lg"
+                      variant="outline"
+                      borderColor={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                      color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                      onClick={() => history.goBack()}
+                      _hover={{ opacity: 0.9 }}
+                    >
+                      Zpět do menu
+                    </Button>
+                  </HStack>
+                </>
+              )}
+
+              {/* Info Card */}
+              {!quizStarted && !quizFinished && (
+                <Box
+                  p={6}
+                  borderRadius="xl"
+                  bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                  borderWidth="1px"
+                  borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                >
+                  <HStack gap={3} align="start">
+                    <Box
+                      bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                      color="white"
+                      minW="40px"
+                      h="40px"
+                      borderRadius="full"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      fontSize="xl"
+                      flexShrink={0}
+                    >
+                      💡
+                    </Box>
+                    <VStack align="start" gap={1}>
+                      <Text fontWeight="bold" fontSize="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                        Jak to funguje
+                      </Text>
+                      <Text fontSize="sm" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
+                        Každý kvíz obsahuje až 20 značek. Uvidíte fotku značky a 4 možnosti. Vyberte správný název a získejte body. Hodně štěstí!
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </Box>
+              )}
+            </VStack>
+          </Container>
+        </Box>
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default QuizCZ;
