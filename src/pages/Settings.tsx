@@ -18,13 +18,16 @@ import {
   Container,
   Flex,
 } from '@chakra-ui/react';
-import { Moon, Sun, Globe, Bell, Volume2, Eye, Smartphone, Check, X } from 'lucide-react';
+import { Moon, Sun, Globe, Bell, Volume2, Eye, Smartphone, Check, X, Languages } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
+import { useTranslation } from '../hooks/useTranslation';
+import type { Language } from '../contexts/LanguageContext';
 
 const Settings: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
-  
+  const { t, language, setLanguage } = useTranslation();
+
   // Settings state
   const [settings, setSettings] = useState({
     notifications: true,
@@ -41,18 +44,29 @@ const Settings: React.FC = () => {
     }));
   };
 
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+  };
+
   const settingsGroups = [
     {
-      title: 'Appearance',
+      title: t('settings.appearance'),
       icon: <Eye size={20} />,
       items: [
         {
           key: 'darkMode',
-          label: 'Dark Mode',
-          description: 'Use dark theme for comfortable viewing',
+          label: t('settings.darkMode'),
+          description: t('settings.darkModeDesc'),
           value: colorMode === 'dark',
           onChange: toggleColorMode,
           icon: colorMode === 'light' ? <Moon size={18} /> : <Sun size={18} />,
+        },
+        {
+          key: 'language',
+          label: t('settings.language'),
+          description: t('settings.languageDesc'),
+          isLanguageSelector: true,
+          icon: <Languages size={18} />,
         },
       ],
     },
@@ -98,7 +112,7 @@ const Settings: React.FC = () => {
       ],
     },
     {
-      title: 'Advanced',
+      title: t('settings.data'),
       icon: <Smartphone size={20} />,
       items: [
         {
@@ -148,10 +162,10 @@ const Settings: React.FC = () => {
                 </IconButton>
                 <VStack align="start" gap={0}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
-                    Settings
+                    {t('settings.title')}
                   </Heading>
                   <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                    Customize your experience
+                    {t('settings.subtitle')}
                   </Text>
                 </VStack>
               </HStack>
@@ -180,7 +194,7 @@ const Settings: React.FC = () => {
                   </HStack>
 
                   <VStack gap={2} align="stretch">
-                    {group.items.map((item) => (
+                    {group.items.map((item: any) => (
                       <Box
                         key={item.key}
                         p={4}
@@ -189,57 +203,101 @@ const Settings: React.FC = () => {
                         borderWidth="1px"
                         borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
                       >
-                        <HStack justify="space-between" align="start">
-                          <HStack gap={3} flex={1}>
-                            {item.icon && (
-                              <Box color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                                {item.icon}
-                              </Box>
-                            )}
-                            <VStack align="start" gap={0} flex={1}>
-                              <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                                {item.label}
-                              </Text>
-                              <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                                {item.description}
-                              </Text>
-                            </VStack>
-                          </HStack>
-                          <Box
-                            as="button"
-                            w="52px"
-                            h="28px"
-                            borderRadius="full"
-                            bg={item.value ? '#d4a574' : colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
-                            position="relative"
-                            transition="all 0.3s"
-                            onClick={item.onChange}
-                            cursor="pointer"
-                            _hover={{
-                              opacity: 0.8,
-                            }}
-                          >
-                            <Box
-                              position="absolute"
-                              top="2px"
-                              left={item.value ? '26px' : '2px'}
-                              w="24px"
-                              h="24px"
-                              borderRadius="full"
-                              bg="white"
-                              transition="all 0.3s"
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                            >
-                              {item.value ? (
-                                <Check size={14} color="#d4a574" />
-                              ) : (
-                                <X size={14} color="#795548" />
+                        {item.isLanguageSelector ? (
+                          <VStack align="stretch" gap={3}>
+                            <HStack gap={3}>
+                              {item.icon && (
+                                <Box color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
+                                  {item.icon}
+                                </Box>
                               )}
+                              <VStack align="start" gap={0} flex={1}>
+                                <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                                  {item.label}
+                                </Text>
+                                <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                                  {item.description}
+                                </Text>
+                              </VStack>
+                            </HStack>
+                            <HStack gap={2}>
+                              {(['en', 'cs', 'sk'] as Language[]).map((lang) => (
+                                <Box
+                                  key={lang}
+                                  as="button"
+                                  flex={1}
+                                  px={3}
+                                  py={2}
+                                  borderRadius="lg"
+                                  bg={language === lang ? '#d4a574' : colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                                  color={language === lang ? 'white' : colorMode === 'light' ? '#5d4037' : '#bcaaa4'}
+                                  fontSize="xs"
+                                  fontWeight="semibold"
+                                  onClick={() => handleLanguageChange(lang)}
+                                  cursor="pointer"
+                                  transition="all 0.2s"
+                                  _hover={{
+                                    opacity: 0.8,
+                                  }}
+                                >
+                                  {t(`settings.languages.${lang}`)}
+                                </Box>
+                              ))}
+                            </HStack>
+                          </VStack>
+                        ) : (
+                          <HStack justify="space-between" align="start">
+                            <HStack gap={3} flex={1}>
+                              {item.icon && (
+                                <Box color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
+                                  {item.icon}
+                                </Box>
+                              )}
+                              <VStack align="start" gap={0} flex={1}>
+                                <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                                  {item.label}
+                                </Text>
+                                <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                                  {item.description}
+                                </Text>
+                              </VStack>
+                            </HStack>
+                            <Box
+                              as="button"
+                              w="52px"
+                              h="28px"
+                              borderRadius="full"
+                              bg={item.value ? '#d4a574' : colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                              position="relative"
+                              transition="all 0.3s"
+                              onClick={item.onChange}
+                              cursor="pointer"
+                              _hover={{
+                                opacity: 0.8,
+                              }}
+                            >
+                              <Box
+                                position="absolute"
+                                top="2px"
+                                left={item.value ? '26px' : '2px'}
+                                w="24px"
+                                h="24px"
+                                borderRadius="full"
+                                bg="white"
+                                transition="all 0.3s"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                              >
+                                {item.value ? (
+                                  <Check size={14} color="#d4a574" />
+                                ) : (
+                                  <X size={14} color="#795548" />
+                                )}
+                              </Box>
                             </Box>
-                          </Box>
-                        </HStack>
+                          </HStack>
+                        )}
                       </Box>
                     ))}
                   </VStack>
@@ -283,10 +341,10 @@ const Settings: React.FC = () => {
                 transition="all 0.2s"
               >
                 <Text fontSize="sm" color="red.500" fontWeight="semibold">
-                  Reset All Progress
+                  {t('settings.resetProgress')}
                 </Text>
                 <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'} mt={1}>
-                  This will delete all your learning data
+                  {t('settings.resetProgressDesc')}
                 </Text>
               </Box>
             </VStack>

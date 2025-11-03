@@ -22,15 +22,17 @@ import {
 } from '@chakra-ui/react';
 import { Moon, Sun, ArrowRight } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
+import { useTranslation } from '../hooks/useTranslation';
 
 const SelectCountry: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
+  const { t } = useTranslation();
 
   const countries = [
     {
       code: 'CZ',
-      name: 'Czech Republic',
+      nameKey: 'selectCountry.czechia',
       flag: '🇨🇿',
       signsCount: 180,
       learningModes: 5,
@@ -84,10 +86,10 @@ const SelectCountry: React.FC = () => {
                 </IconButton>
                 <VStack align="start" gap={0}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
-                    Choose Country
+                    {t('selectCountry.title')}
                   </Heading>
                   <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                    Select to begin learning
+                    {t('selectCountry.subtitle')}
                   </Text>
                 </VStack>
               </HStack>
@@ -144,10 +146,10 @@ const SelectCountry: React.FC = () => {
                   </Box>
                   <VStack align="start" gap={1}>
                     <Text fontWeight="bold" fontSize="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                      Start Your Journey
+                      {t('home.startLearning')}
                     </Text>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                      Choose a country to explore road signs and test your knowledge
+                      {t('selectCountry.subtitle')}
                     </Text>
                   </VStack>
                 </HStack>
@@ -195,19 +197,19 @@ const SelectCountry: React.FC = () => {
                       >
                         {country.flag}
                       </Box>
-                      
+
                       <VStack align="start" flex={1} gap={2}>
                         <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                          {country.name}
+                          {t(country.nameKey)}
                         </Heading>
-                        
+
                         <HStack gap={4}>
                           <HStack gap={1}>
                             <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
                               🚦
                             </Text>
                             <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontWeight="medium">
-                              {country.signsCount}+ signs
+                              {country.signsCount}+ {t('selectCountry.totalSigns')}
                             </Text>
                           </HStack>
                           <HStack gap={1}>
@@ -215,13 +217,13 @@ const SelectCountry: React.FC = () => {
                               📚
                             </Text>
                             <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontWeight="medium">
-                              {country.learningModes} modes
+                              {country.learningModes} {t('selectCountry.categories')}
                             </Text>
                           </HStack>
                         </HStack>
 
                         <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                          Complete learning system with quizzes, flashcards, and master exam
+                          {t('home.description')}
                         </Text>
                       </VStack>
 
@@ -237,7 +239,7 @@ const SelectCountry: React.FC = () => {
               <VStack gap={4} align="stretch">
                 <HStack gap={2} px={2}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                    Coming Soon
+                    {t('selectCountry.coming')}
                   </Heading>
                 </HStack>
 
@@ -252,11 +254,11 @@ const SelectCountry: React.FC = () => {
                     <HStack gap={2}>
                       <Text fontSize="xl">🚀</Text>
                       <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                        More Countries in Development
+                        {t('selectCountry.coming')}
                       </Text>
                     </HStack>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                      We're actively adding more European countries to help you master road signs across the continent.
+                      {t('home.subtitle')}
                     </Text>
                     <Grid templateColumns="repeat(2, 1fr)" gap={2} w="100%" pt={2}>
                       {comingSoon.map((country) => (
