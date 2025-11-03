@@ -22,10 +22,12 @@ import {
 import { Moon, Sun, ArrowRight, Trophy, Brain, CheckCircle, ListChecks, BookOpen } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
 import { czechRoadSigns } from '../../data/czechSigns';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const Czechia: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
+  const { t } = useTranslation();
 
   // Real user progress data from localStorage
   const [signsLearned, setSignsLearned] = useState(0);
@@ -67,43 +69,43 @@ const Czechia: React.FC = () => {
   const menuOptions = [
     {
       id: 'list',
-      title: 'List of Signs',
-      description: 'Browse all Czech road signs with descriptions',
+      titleKey: 'dashboard.browseAll',
+      descriptionKey: 'dashboard.browseAllDesc',
       emoji: '📋',
       route: '/country/CZ/signs-list',
-      badge: `${userProgress.totalSigns} signs`,
+      badge: `${userProgress.totalSigns} ${t('selectCountry.totalSigns')}`,
     },
     {
       id: 'learn',
-      title: 'Learn Signs',
-      description: 'Interactive learning with flashcards and detailed info',
+      titleKey: 'dashboard.flashcards',
+      descriptionKey: 'dashboard.flashcardsDesc',
       emoji: '📚',
       route: '/country/CZ/learn',
-      badge: `${userProgress.signsLearned}/${userProgress.totalSigns} learned`,
+      badge: `${userProgress.signsLearned}/${userProgress.totalSigns} ${t('dashboard.learned')}`,
     },
     {
       id: 'quiz',
-      title: 'Take a Quiz',
-      description: 'Multiple choice questions to test your knowledge',
+      titleKey: 'dashboard.quiz',
+      descriptionKey: 'dashboard.quizDesc',
       emoji: '🧠',
       route: '/country/CZ/quiz',
-      badge: 'Test yourself',
+      badge: t('dashboard.quizDesc'),
     },
     {
       id: 'true-false',
-      title: 'True or False',
-      description: 'Quick-fire true/false challenges',
+      titleKey: 'dashboard.trueFalse',
+      descriptionKey: 'dashboard.trueFalseDesc',
       emoji: '✓',
       route: '/country/CZ/true-false',
-      badge: 'Quick practice',
+      badge: t('dashboard.trueFalseDesc'),
     },
     {
       id: 'master-exam',
-      title: 'Master Exam',
-      description: 'Pass the comprehensive exam to become a master',
+      titleKey: 'quiz.title',
+      descriptionKey: 'dashboard.quizDesc',
       emoji: '🎓',
       route: '/country/CZ/master-exam',
-      badge: 'Challenge',
+      badge: t('dashboard.quizDesc'),
       isLocked: userProgress.signsLearned < 100,
     },
   ];
@@ -165,10 +167,10 @@ const Czechia: React.FC = () => {
                   </Box>
                   <VStack align="start" gap={0}>
                     <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
-                      Česká republika
+                      {t('dashboard.title')}
                     </Heading>
                     <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                      Choose learning mode
+                      {t('dashboard.subtitle')}
                     </Text>
                   </VStack>
                 </HStack>
@@ -213,7 +215,7 @@ const Czechia: React.FC = () => {
                   <HStack justify="space-between">
                     <VStack align="start" gap={0}>
                       <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                        Your Progress
+                        {t('dashboard.progress')}
                       </Text>
                       <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
                         {userProgress.signsLearned} / {userProgress.totalSigns}
@@ -276,7 +278,7 @@ const Czechia: React.FC = () => {
               <VStack gap={4} align="stretch">
                 <HStack gap={2} px={2}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                    Learning Modes
+                    {t('dashboard.learningSessions')}
                   </Heading>
                 </HStack>
 
@@ -325,16 +327,16 @@ const Czechia: React.FC = () => {
                       <VStack align="start" flex={1} gap={1}>
                         <HStack>
                           <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                            {option.title}
+                            {t(option.titleKey)}
                           </Heading>
                           {option.isLocked && (
                             <Text fontSize="xl">🔒</Text>
                           )}
                         </HStack>
                         <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="sm">
-                          {option.description}
+                          {t(option.descriptionKey)}
                         </Text>
-                        <Badge 
+                        <Badge
                           bg={option.isLocked ? '#efebe9' : colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
                           color={option.isLocked ? '#5d4037' : colorMode === 'light' ? '#d4a574' : '#d4a574'}
                           fontSize="xs"
@@ -342,7 +344,7 @@ const Czechia: React.FC = () => {
                           borderWidth="1px"
                           borderColor={option.isLocked ? '#e8dcc8' : colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
                         >
-                          {option.isLocked ? 'Learn 100 signs to unlock' : option.badge}
+                          {option.isLocked ? `${t('dashboard.learned')} 100 ${t('selectCountry.totalSigns')}` : option.badge}
                         </Badge>
                       </VStack>
 

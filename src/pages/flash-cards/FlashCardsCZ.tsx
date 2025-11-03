@@ -22,6 +22,7 @@ import {
 import { Moon, Sun, ArrowLeft, ArrowRight, RotateCcw, Filter } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
 import { czechRoadSigns, type RoadSign } from '../../data/czechSigns';
+import { useTranslation } from '../../hooks/useTranslation';
 
 // Use imported Czech road signs data
 const flashcards = czechRoadSigns;
@@ -29,6 +30,7 @@ const flashcards = czechRoadSigns;
 const FlashCardsCZ: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
+  const { t } = useTranslation();
 
   // Category selection
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -36,13 +38,18 @@ const FlashCardsCZ: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [stillLearning, setStillLearning] = useState<number[]>([]);
-  const [alreadyDone, setAlreadyDone] = useState<number[]>([]);
+  const [sessionStillLearning, setSessionStillLearning] = useState<number[]>([]);
+  const [sessionAlreadyDone, setSessionAlreadyDone] = useState<number[]>([]);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [activeFlashcards, setActiveFlashcards] = useState<RoadSign[]>([]);
+  const [learnedSignIds, setLearnedSignIds] = useState<number[]>([]);
 
-  const categories = ['All', 'Warning', 'Prohibition'];
+  const categories = [
+    { key: 'All', label: t('flashcards.categories.all') },
+    { key: 'Warning', label: t('flashcards.categories.warning') },
+    { key: 'Prohibition', label: t('flashcards.categories.prohibition') }
+  ];
 
   // Load learned signs from localStorage on mount
   useEffect(() => {
@@ -50,9 +57,10 @@ const FlashCardsCZ: React.FC = () => {
     if (saved) {
       try {
         const learnedIds = JSON.parse(saved) as number[];
-        // We don't set alreadyDone here, as that's session-specific
+        setLearnedSignIds(learnedIds);
       } catch (e) {
         console.error('Failed to load learned signs:', e);
+        setLearnedSignIds([]);
       }
     }
   }, []);
@@ -64,6 +72,7 @@ const FlashCardsCZ: React.FC = () => {
       const existing = saved ? JSON.parse(saved) as number[] : [];
       const updated = Array.from(new Set([...existing, ...signIds]));
       localStorage.setItem('cz-learned-signs', JSON.stringify(updated));
+      setLearnedSignIds(updated);
     } catch (e) {
       console.error('Failed to save learned signs:', e);
     }
@@ -72,12 +81,17 @@ const FlashCardsCZ: React.FC = () => {
   const currentCard = activeFlashcards[currentIndex];
   const isComplete = currentIndex >= activeFlashcards.length;
 
-  // Generate flashcards based on category
-  const startSession = (category: string) => {
+  // Generate flashcards based on category, excluding already learned signs
+  const startSession = (category: string, practiceAll: boolean = false) => {
     let selectedSigns = [...flashcards];
 
     if (category !== 'All') {
       selectedSigns = flashcards.filter(sign => sign.category === category);
+    }
+
+    // Filter out already learned signs unless user wants to practice all
+    if (!practiceAll) {
+      selectedSigns = selectedSigns.filter(sign => !learnedSignIds.includes(sign.id));
     }
 
     // Shuffle the signs
@@ -86,6 +100,8 @@ const FlashCardsCZ: React.FC = () => {
     setActiveFlashcards(shuffled);
     setSelectedCategory(category);
     setSessionStarted(true);
+    setSessionStillLearning([]);
+    setSessionAlreadyDone([]);
   };
 
   const handleCardClick = () => {
@@ -98,12 +114,18 @@ const FlashCardsCZ: React.FC = () => {
     const cardId = currentCard.id;
 
     if (direction === 'left') {
-      setStillLearning([...stillLearning, cardId]);
+      // Only add if not already in the array
+      if (!sessionStillLearning.includes(cardId)) {
+        setSessionStillLearning([...sessionStillLearning, cardId]);
+      }
     } else {
-      const newAlreadyDone = [...alreadyDone, cardId];
-      setAlreadyDone(newAlreadyDone);
-      // Save to localStorage immediately when marked as done
-      saveLearnedSigns([cardId]);
+      // Only add if not already in the array
+      if (!sessionAlreadyDone.includes(cardId)) {
+        const newAlreadyDone = [...sessionAlreadyDone, cardId];
+        setSessionAlreadyDone(newAlreadyDone);
+        // Save to localStorage immediately when marked as done
+        saveLearnedSigns([cardId]);
+      }
     }
 
     // Move to next card with smooth animation
@@ -118,20 +140,26 @@ const FlashCardsCZ: React.FC = () => {
     setSelectedCategory(null);
     setSessionStarted(false);
     setCurrentIndex(0);
-    setStillLearning([]);
-    setAlreadyDone([]);
+    setSessionStillLearning([]);
+    setSessionAlreadyDone([]);
     setIsFlipped(false);
     setDragOffset(0);
     setActiveFlashcards([]);
   };
 
+  const handlePracticeAgain = () => {
+    if (selectedCategory) {
+      startSession(selectedCategory, true); // Practice all signs including learned ones
+    }
+  };
+
   const handleContinueSession = () => {
-    // Filter flashcards to only include those in stillLearning
-    const learningCards = activeFlashcards.filter(card => stillLearning.includes(card.id));
+    // Filter flashcards to only include those in sessionStillLearning
+    const learningCards = activeFlashcards.filter(card => sessionStillLearning.includes(card.id));
     setActiveFlashcards(learningCards);
     setCurrentIndex(0);
-    setStillLearning([]);
-    setAlreadyDone([]);
+    setSessionStillLearning([]);
+    setSessionAlreadyDone([]);
     setIsFlipped(false);
     setDragOffset(0);
   };
@@ -205,10 +233,10 @@ const FlashCardsCZ: React.FC = () => {
                 </IconButton>
                 <VStack align="start" gap={0}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
-                    Learn Signs
+                    {t('flashcards.title')}
                   </Heading>
                   <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                    Swipe to categorize
+                    {t('flashcards.subtitle')}
                   </Text>
                 </VStack>
               </HStack>
@@ -256,57 +284,80 @@ const FlashCardsCZ: React.FC = () => {
                     <VStack gap={4}>
                       <Box fontSize="4xl">📚</Box>
                       <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                        Choose Category
+                        {t('flashcards.chooseCategory')}
                       </Heading>
                       <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="sm">
-                        Select a category to start learning
+                        {t('flashcards.selectCategoryDesc')}
                       </Text>
                     </VStack>
                   </Box>
 
                   <VStack gap={4} align="stretch">
                     {categories.map((category) => {
-                      const signsInCategory = category === 'All'
-                        ? flashcards.length
-                        : flashcards.filter(s => s.category === category).length;
+                      const allSignsInCategory = category.key === 'All'
+                        ? flashcards
+                        : flashcards.filter(s => s.category === category.key);
+
+                      const unlearnedSigns = allSignsInCategory.filter(sign => !learnedSignIds.includes(sign.id));
+                      const totalInCategory = allSignsInCategory.length;
+                      const unlearnedCount = unlearnedSigns.length;
+                      const learnedCount = totalInCategory - unlearnedCount;
 
                       return (
-                        <Box
-                          key={category}
-                          p={6}
-                          borderRadius="xl"
-                          bg={colorMode === 'light' ? 'white' : '#2c1810'}
-                          borderWidth="1px"
-                          borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
-                          cursor="pointer"
-                          onClick={() => startSession(category)}
-                          _hover={{
-                            transform: 'translateY(-4px)',
-                            shadow: 'xl',
-                            borderColor: colorMode === 'light' ? '#d4a574' : '#d4a574',
-                          }}
-                          transition="all 0.3s ease"
-                        >
-                          <HStack justify="space-between">
-                            <VStack align="start" gap={1}>
-                              <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                                {category}
-                              </Heading>
-                              <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                                {signsInCategory} signs to learn
-                              </Text>
-                            </VStack>
-                            <Badge
+                        <Box key={category.key}>
+                          <Box
+                            p={6}
+                            borderRadius="xl"
+                            bg={colorMode === 'light' ? 'white' : '#2c1810'}
+                            borderWidth="1px"
+                            borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
+                            cursor="pointer"
+                            onClick={() => startSession(category.key, unlearnedCount === 0)}
+                            _hover={{
+                              transform: 'translateY(-4px)',
+                              shadow: 'xl',
+                              borderColor: colorMode === 'light' ? '#d4a574' : '#d4a574',
+                            }}
+                            transition="all 0.3s ease"
+                          >
+                            <HStack justify="space-between">
+                              <VStack align="start" gap={1}>
+                                <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
+                                  {category.label}
+                                </Heading>
+                                <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                                  {unlearnedCount > 0
+                                    ? `${unlearnedCount} ${t('flashcards.newSigns')} • ${learnedCount} ${t('flashcards.learnedSigns')}`
+                                    : t('flashcards.allLearned', { count: totalInCategory })
+                                  }
+                                </Text>
+                              </VStack>
+                              <Badge
+                                bg={unlearnedCount === 0 ? '#16a34a' : colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
+                                color={unlearnedCount === 0 ? 'white' : colorMode === 'light' ? '#d4a574' : '#d4a574'}
+                                fontSize="md"
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                              >
+                                {unlearnedCount > 0 ? unlearnedCount : '✓'}
+                              </Badge>
+                            </HStack>
+                          </Box>
+                          {unlearnedCount === 0 && (
+                            <Box
+                              mt={2}
+                              p={3}
+                              borderRadius="lg"
                               bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
-                              color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                              fontSize="md"
-                              px={3}
-                              py={1}
-                              borderRadius="full"
+                              borderWidth="1px"
+                              borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
                             >
-                              {signsInCategory}
-                            </Badge>
-                          </HStack>
+                              <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
+                                💡 {t('flashcards.practiceAllHint', { count: totalInCategory })}
+                              </Text>
+                            </Box>
+                          )}
                         </Box>
                       );
                     })}
@@ -327,18 +378,18 @@ const FlashCardsCZ: React.FC = () => {
                   <VStack gap={2}>
                     <HStack justify="space-between" w="100%">
                       <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                        Progress: {Math.min(currentIndex, activeFlashcards.length)} / {activeFlashcards.length}
+                        {t('flashcards.progress')}: {Math.min(currentIndex, activeFlashcards.length)} / {activeFlashcards.length}
                       </Text>
                       <Badge
                         bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
                         color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
                       >
-                        {selectedCategory}
+                        {categories.find(c => c.key === selectedCategory)?.label}
                       </Badge>
                     </HStack>
                     <HStack justify="space-between" w="100%">
                       <Text fontSize="sm" color={colorMode === 'light' ? '#d4a574' : '#d4a574'} fontWeight="semibold">
-                        {activeFlashcards.length - currentIndex} remaining
+                        {activeFlashcards.length - currentIndex} {t('flashcards.remaining')}
                       </Text>
                     </HStack>
                     <Box w="100%" h="6px" bg={colorMode === 'light' ? '#e8dcc8' : '#5d4037'} borderRadius="full" overflow="hidden">
@@ -361,7 +412,7 @@ const FlashCardsCZ: React.FC = () => {
                       <ArrowLeft size={18} />
                     </Box>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                      Still Learning
+                      {t('flashcards.instructions.left')}
                     </Text>
                   </HStack>
                   <HStack gap={2}>
@@ -369,7 +420,7 @@ const FlashCardsCZ: React.FC = () => {
                       <ArrowRight size={18} />
                     </Box>
                     <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                      Already Done
+                      {t('flashcards.instructions.right')}
                     </Text>
                   </HStack>
                 </HStack>
@@ -404,7 +455,7 @@ const FlashCardsCZ: React.FC = () => {
                       fontWeight="bold"
                       fontSize="md"
                     >
-                      Still Learning
+                      {t('flashcards.instructions.left')}
                     </Box>
                   </Box>
 
@@ -426,7 +477,7 @@ const FlashCardsCZ: React.FC = () => {
                       fontWeight="bold"
                       fontSize="md"
                     >
-                      Already Done
+                      {t('flashcards.instructions.right')}
                     </Box>
                   </Box>
 
@@ -506,7 +557,7 @@ const FlashCardsCZ: React.FC = () => {
                               color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
                               fontWeight="semibold"
                             >
-                              Tap to see name
+                              {t('flashcards.tapToSee')}
                             </Text>
                           </VStack>
                         </Box>
@@ -573,30 +624,30 @@ const FlashCardsCZ: React.FC = () => {
                     <VStack gap={4}>
                       <Box fontSize="5xl">🎉</Box>
                       <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                        Session Complete!
+                        {t('flashcards.sessionComplete')}
                       </Heading>
 
                       <HStack gap={6} justify="center">
                         <VStack>
                           <Text fontSize="2xl" fontWeight="bold" color="#dc2626">
-                            {stillLearning.length}
+                            {sessionStillLearning.length}
                           </Text>
                           <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                            Still Learning
+                            {t('flashcards.instructions.left')}
                           </Text>
                         </VStack>
                         <VStack>
                           <Text fontSize="2xl" fontWeight="bold" color="#16a34a">
-                            {alreadyDone.length}
+                            {sessionAlreadyDone.length}
                           </Text>
                           <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                            Already Done
+                            {t('flashcards.instructions.right')}
                           </Text>
                         </VStack>
                       </HStack>
 
                       <VStack gap={3} pt={2} w="100%">
-                        {stillLearning.length > 0 && (
+                        {sessionStillLearning.length > 0 && (
                           <Box
                             as="button"
                             w="100%"
@@ -616,7 +667,7 @@ const FlashCardsCZ: React.FC = () => {
                             gap={2}
                           >
                             <ArrowRight size={18} />
-                            Continue Session ({stillLearning.length} cards)
+                            {t('flashcards.continueSession')} ({sessionStillLearning.length} {t('flashcards.cards')})
                           </Box>
                         )}
                         <HStack gap={3} w="100%">
@@ -629,7 +680,7 @@ const FlashCardsCZ: React.FC = () => {
                             bg={colorMode === 'light' ? '#d4a574' : '#d4a574'}
                             color="white"
                             fontWeight="semibold"
-                            onClick={handleReset}
+                            onClick={handlePracticeAgain}
                             _hover={{
                               opacity: 0.9,
                             }}
@@ -639,7 +690,7 @@ const FlashCardsCZ: React.FC = () => {
                             gap={2}
                           >
                             <RotateCcw size={18} />
-                            Practice Again
+                            {t('flashcards.practiceAgain')}
                           </Box>
                           <Box
                             as="button"
@@ -657,7 +708,7 @@ const FlashCardsCZ: React.FC = () => {
                               opacity: 0.9,
                             }}
                           >
-                            Back to Menu
+                            {t('flashcards.backToMenu')}
                           </Box>
                         </HStack>
                       </VStack>
@@ -689,7 +740,7 @@ const FlashCardsCZ: React.FC = () => {
                     gap={2}
                   >
                     <ArrowLeft size={18} />
-                    Still Learning
+                    {t('flashcards.instructions.left')}
                   </Box>
                   <Box
                     as="button"
@@ -710,7 +761,7 @@ const FlashCardsCZ: React.FC = () => {
                     justifyContent="center"
                     gap={2}
                   >
-                    Already Done
+                    {t('flashcards.instructions.right')}
                     <ArrowRight size={18} />
                   </Box>
                 </HStack>
