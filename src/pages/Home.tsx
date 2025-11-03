@@ -20,10 +20,12 @@ import {
 } from '@chakra-ui/react';
 import { Moon, Sun, ArrowRight } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Home: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
+  const { t } = useTranslation();
 
   return (
     <IonPage>
@@ -60,16 +62,16 @@ const Home: React.FC = () => {
                   🚦
                 </Box>
                 <VStack align="start" gap={0}>
-                  <Heading 
-                    size="lg" 
+                  <Heading
+                    size="lg"
                     color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}
                     fontWeight="bold"
                     letterSpacing="tight"
                   >
-                    Road Signs Master
+                    {t('home.title')}
                   </Heading>
                   <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#a1887f'}>
-                    Learn traffic signs easily
+                    {t('home.subtitle')}
                   </Text>
                 </VStack>
               </HStack>
@@ -131,15 +133,15 @@ const Home: React.FC = () => {
                   lineHeight="1.2"
                   maxW="700px"
                 >
-                  Master Road Signs with Confidence
+                  {t('home.title')}
                 </Heading>
-                
-                <Text 
+
+                <Text
                   color={colorMode === 'light' ? '#5d4037' : '#a1887f'}
                   fontSize="lg"
                   maxW="500px"
                 >
-                  Learn traffic rules from European countries through interactive learning and comprehensive testing
+                  {t('home.description')}
                 </Text>
               </VStack>
 
@@ -177,10 +179,10 @@ const Home: React.FC = () => {
                     </Box>
                     <VStack align="start" flex={1} gap={1}>
                       <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                        Start Learning
+                        {t('home.startLearning')}
                       </Heading>
                       <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="md">
-                        Choose a country and begin your journey to road sign mastery
+                        {t('home.selectCountry')}
                       </Text>
                     </VStack>
                     <Box color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
@@ -223,10 +225,10 @@ const Home: React.FC = () => {
                     </Box>
                     <VStack align="start" flex={1} gap={1}>
                       <Heading size="lg" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                        About
+                        {t('about.title')}
                       </Heading>
                       <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="md">
-                        Learn more about the app, features, and how it works
+                        {t('about.subtitle')}
                       </Text>
                     </VStack>
                     <Box color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
@@ -246,18 +248,18 @@ const Home: React.FC = () => {
               >
                 <VStack gap={4} align="stretch">
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} textAlign="center">
-                    Why Choose Road Signs Master?
+                    {t('home.features.title')}
                   </Heading>
-                  
+
                   <VStack gap={3} align="stretch">
                     <HStack gap={3} align="start">
                       <Text fontSize="xl">📚</Text>
                       <VStack align="start" gap={0} flex={1}>
                         <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                          Interactive Learning
+                          {t('home.features.flashcards')}
                         </Text>
                         <Text fontSize="xs" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                          Multiple modes including flashcards, quizzes, and exams
+                          {t('home.features.flashcardsDesc')}
                         </Text>
                       </VStack>
                     </HStack>
@@ -266,10 +268,10 @@ const Home: React.FC = () => {
                       <Text fontSize="xl">📊</Text>
                       <VStack align="start" gap={0} flex={1}>
                         <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                          Track Progress
+                          {t('home.features.progress')}
                         </Text>
                         <Text fontSize="xs" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                          Monitor your learning with detailed statistics
+                          {t('home.features.progressDesc')}
                         </Text>
                       </VStack>
                     </HStack>
@@ -278,10 +280,10 @@ const Home: React.FC = () => {
                       <Text fontSize="xl">🎯</Text>
                       <VStack align="start" gap={0} flex={1}>
                         <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                          Master Certification
+                          {t('home.features.quiz')}
                         </Text>
                         <Text fontSize="xs" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                          Unlock the master exam after learning 100 signs
+                          {t('home.features.quizDesc')}
                         </Text>
                       </VStack>
                     </HStack>

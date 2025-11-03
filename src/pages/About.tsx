@@ -22,58 +22,60 @@ import {
 } from '@chakra-ui/react';
 import { Moon, Sun, Heart, Shield, Zap, Globe, Target } from 'lucide-react';
 import { useColorMode } from '@chakra-ui/color-mode';
+import { useTranslation } from '../hooks/useTranslation';
 
 const About: React.FC = () => {
   const history = useHistory();
   const { colorMode, toggleColorMode } = useColorMode();
+  const { t } = useTranslation();
 
   const features = [
     {
       icon: <Globe size={24} />,
-      title: 'Multi-Country Support',
-      description: 'Learn road signs from multiple European countries including Czech Republic, Poland, Germany, and more.',
+      titleKey: 'home.features.flashcards',
+      descriptionKey: 'about.description',
     },
     {
       icon: <Target size={24} />,
-      title: 'Interactive Learning',
-      description: 'Engage with flashcards, quizzes, and interactive exercises designed for effective learning.',
+      titleKey: 'home.features.quiz',
+      descriptionKey: 'home.features.flashcardsDesc',
     },
     {
       icon: <Zap size={24} />,
-      title: 'Progress Tracking',
-      description: 'Monitor your learning journey with detailed statistics and achievement tracking.',
+      titleKey: 'home.features.progress',
+      descriptionKey: 'home.features.progressDesc',
     },
     {
       icon: <Shield size={24} />,
-      title: 'Master Exam',
-      description: 'Test your comprehensive knowledge with our challenging master exam to prove your expertise.',
+      titleKey: 'quiz.title',
+      descriptionKey: 'home.features.quizDesc',
     },
   ];
 
   const learningModes = [
     {
-      title: 'Sign List',
-      description: 'Browse comprehensive catalog of road signs',
+      titleKey: 'dashboard.browseAll',
+      descriptionKey: 'dashboard.browseAllDesc',
       emoji: '📋',
     },
     {
-      title: 'Learn Mode',
-      description: 'Interactive flashcards with detailed explanations',
+      titleKey: 'dashboard.flashcards',
+      descriptionKey: 'dashboard.flashcardsDesc',
       emoji: '📚',
     },
     {
-      title: 'Quiz',
-      description: 'Multiple choice questions to test knowledge',
+      titleKey: 'dashboard.quiz',
+      descriptionKey: 'dashboard.quizDesc',
       emoji: '🧠',
     },
     {
-      title: 'True or False',
-      description: 'Quick-fire challenges for rapid learning',
+      titleKey: 'dashboard.trueFalse',
+      descriptionKey: 'dashboard.trueFalseDesc',
       emoji: '✓',
     },
     {
-      title: 'Master Exam',
-      description: 'Comprehensive test to become a certified master',
+      titleKey: 'quiz.title',
+      descriptionKey: 'dashboard.quizDesc',
       emoji: '🎓',
     },
   ];
@@ -81,23 +83,23 @@ const About: React.FC = () => {
   const howItWorks = [
     {
       step: '1',
-      title: 'Choose Your Country',
-      description: 'Select from available countries to start learning their specific road signs',
+      titleKey: 'selectCountry.title',
+      descriptionKey: 'selectCountry.subtitle',
     },
     {
       step: '2',
-      title: 'Learn at Your Pace',
-      description: 'Use flashcards, browse the sign list, or jump into quizzes based on your preference',
+      titleKey: 'home.startLearning',
+      descriptionKey: 'home.description',
     },
     {
       step: '3',
-      title: 'Track Your Progress',
-      description: 'Monitor your learning with progress indicators and statistics',
+      titleKey: 'dashboard.progress',
+      descriptionKey: 'home.features.progressDesc',
     },
     {
       step: '4',
-      title: 'Master the Exam',
-      description: 'Once confident, take the master exam to certify your knowledge',
+      titleKey: 'quiz.title',
+      descriptionKey: 'dashboard.quizDesc',
     },
   ];
 
@@ -137,10 +139,10 @@ const About: React.FC = () => {
                 </IconButton>
                 <VStack align="start" gap={0}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'} fontWeight="bold" letterSpacing="tight">
-                    About
+                    {t('about.title')}
                   </Heading>
                   <Text fontSize="xs" color={colorMode === 'light' ? '#d4a574' : '#d4a574'}>
-                    Learn more about the app
+                    {t('about.subtitle')}
                   </Text>
                 </VStack>
               </HStack>
@@ -187,37 +189,26 @@ const About: React.FC = () => {
                     size="2xl"
                     color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}
                   >
-                    Road Signs Master
+                    {t('home.title')}
                   </Heading>
-                  <Text 
+                  <Text
                     color={colorMode === 'light' ? '#5d4037' : '#a1887f'}
                     fontSize="lg"
                     maxW="600px"
                   >
-                    Your comprehensive platform for learning and mastering road signs from countries across Europe. Built for drivers, students, and road safety enthusiasts.
+                    {t('about.description')}
                   </Text>
                   <HStack gap={2} pt={2}>
-                    <Badge 
+                    <Badge
                       bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
                       color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                      fontSize="sm" 
-                      px={3} 
+                      fontSize="sm"
+                      px={3}
                       py={1}
                       borderWidth="1px"
                       borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
                     >
-                      Version 1.0
-                    </Badge>
-                    <Badge 
-                      bg={colorMode === 'light' ? '#f5e6d3' : '#3e2723'}
-                      color={colorMode === 'light' ? '#d4a574' : '#d4a574'}
-                      fontSize="sm" 
-                      px={3} 
-                      py={1}
-                      borderWidth="1px"
-                      borderColor={colorMode === 'light' ? '#e8dcc8' : '#5d4037'}
-                    >
-                      Free to Use
+                      {t('about.version')} 1.0
                     </Badge>
                   </HStack>
                 </VStack>
@@ -227,10 +218,10 @@ const About: React.FC = () => {
               <VStack align="stretch" gap={4}>
                 <HStack gap={2} px={2}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                    Key Features
+                    {t('about.features.title')}
                   </Heading>
                 </HStack>
-                
+
                 <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
                   {features.map((feature, index) => (
                     <Box
@@ -256,10 +247,10 @@ const About: React.FC = () => {
                           {feature.icon}
                         </Box>
                         <Heading size="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                          {feature.title}
+                          {t(feature.titleKey)}
                         </Heading>
                         <Text fontSize="sm" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                          {feature.description}
+                          {t(feature.descriptionKey)}
                         </Text>
                       </VStack>
                     </Box>
@@ -277,12 +268,12 @@ const About: React.FC = () => {
               >
                 <VStack align="stretch" gap={4}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                    Learning Modes
+                    {t('dashboard.learningSessions')}
                   </Heading>
                   <Text color={colorMode === 'light' ? '#795548' : '#8d6e63'} fontSize="sm">
-                    We offer 5 different learning modes to suit your study style and pace:
+                    {t('home.description')}
                   </Text>
-                  
+
                   <VStack align="stretch" gap={3} pt={2}>
                     {learningModes.map((mode, index) => (
                       <HStack
@@ -295,10 +286,10 @@ const About: React.FC = () => {
                         <Text fontSize="2xl">{mode.emoji}</Text>
                         <VStack align="start" gap={0} flex={1}>
                           <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                            {mode.title}
+                            {t(mode.titleKey)}
                           </Text>
                           <Text fontSize="xs" color={colorMode === 'light' ? '#795548' : '#8d6e63'}>
-                            {mode.description}
+                            {t(mode.descriptionKey)}
                           </Text>
                         </VStack>
                       </HStack>
@@ -317,9 +308,9 @@ const About: React.FC = () => {
               >
                 <VStack align="stretch" gap={4}>
                   <Heading size="md" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                    How It Works
+                    {t('home.features.title')}
                   </Heading>
-                  
+
                   <VStack align="stretch" gap={3}>
                     {howItWorks.map((item) => (
                       <HStack key={item.step} align="start" gap={3}>
@@ -340,10 +331,10 @@ const About: React.FC = () => {
                         </Box>
                         <VStack align="start" gap={0} flex={1}>
                           <Text fontWeight="semibold" fontSize="sm" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                            {item.title}
+                            {t(item.titleKey)}
                           </Text>
                           <Text fontSize="sm" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                            {item.description}
+                            {t(item.descriptionKey)}
                           </Text>
                         </VStack>
                       </HStack>
@@ -363,16 +354,10 @@ const About: React.FC = () => {
               >
                 <VStack gap={2}>
                   <HStack justify="center">
-                    <Text fontSize="xl" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                      Made with
-                    </Text>
                     <Heart size={20} fill={colorMode === 'light' ? '#d4a574' : '#d4a574'} color={colorMode === 'light' ? '#d4a574' : '#d4a574'} />
-                    <Text fontSize="xl" color={colorMode === 'light' ? '#3e2723' : '#d7ccc8'}>
-                      for road safety
-                    </Text>
                   </HStack>
                   <Text fontSize="sm" color={colorMode === 'light' ? '#5d4037' : '#a1887f'}>
-                    Helping drivers learn and remember road signs for safer journeys
+                    {t('home.subtitle')}
                   </Text>
                 </VStack>
               </Box>
